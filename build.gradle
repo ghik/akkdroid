@@ -42,6 +42,9 @@ project("core") {
 }
 
 project("server") {
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
+
     dependencies {
         compile(project(":core"))
         compile "com.typesafe.akka:akka-actor_2.10:$akkaVersion"
