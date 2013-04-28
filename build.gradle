@@ -1,0 +1,58 @@
+task wrapper(type: Wrapper) {
+    gradleVersion = "1.5"
+}
+
+allprojects {
+    version = "1.0"
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+
+    ext {
+        scalaVersion = "2.10.1"
+        akkaVersion = "2.1.2"
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    idea {
+        module {
+            downloadJavadoc = true
+            downloadSources = true
+        }
+    }
+}
+
+project("core") {
+    dependencies {
+        compile "org.scala-lang:scala-library:$scalaVersion"
+        compile "com.typesafe.akka:akka-actor_2.10:$akkaVersion"
+        compile "com.typesafe.akka:akka-remote_2.10:$akkaVersion"
+    }
+}
+
+project("server") {
+    dependencies {
+        compile(project(":core"))
+    }
+}
+
+project("client") {
+    dependencies {
+        compile(project(":core"))
+    }
+
+    idea.module {
+        jdkName = "Android 2.3.3 Platform"
+
+        iml.withXml {
+            def jdkNode = it.asNode().depthFirst().find { it.name() == "orderEntry" && it.@type == "jdk" }
+            jdkNode.@jdkType = "Android SDK"
+        }
+    }
+}
+
