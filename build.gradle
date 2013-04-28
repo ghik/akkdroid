@@ -7,7 +7,7 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'scala'
     apply plugin: 'idea'
 
     ext {
@@ -20,6 +20,8 @@ subprojects {
     }
 
     idea {
+        pathVariables DOT_GRADLE: file('~/.gradle/caches')
+
         module {
             downloadJavadoc = true
             downloadSources = true
