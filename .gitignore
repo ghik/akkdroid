@@ -22,7 +22,8 @@ local.properties
 
 # IntelliJ stuff
 *.iws
-.idea/workspace.xml
+*.iml
+*.ipr
 
 # Other stuff
 .gradle/

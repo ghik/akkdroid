@@ -3,13 +3,16 @@ task wrapper(type: Wrapper) {
 }
 
 allprojects {
-    version = "1.0"
-}
-
-subprojects {
     apply plugin: 'scala'
     apply plugin: 'idea'
 
+    version = "1.0"
+
+    sourceCompatibility = 1.6
+    targetCompatibility = 1.6
+}
+
+subprojects {
     ext {
         scalaVersion = "2.10.1"
         akkaVersion = "2.1.2"
@@ -19,9 +22,12 @@ subprojects {
         mavenCentral()
     }
 
-    idea {
-        pathVariables DOT_GRADLE: file('~/.gradle/caches')
+    dependencies {
+        scalaTools "org.scala-lang:scala-compiler:$scalaVersion"
+        compile "org.scala-lang:scala-library:$scalaVersion"
+    }
 
+    idea {
         module {
             downloadJavadoc = true
             downloadSources = true
@@ -31,29 +37,65 @@ subprojects {
 
 project("core") {
     dependencies {
-        compile "org.scala-lang:scala-library:$scalaVersion"
-        compile "com.typesafe.akka:akka-actor_2.10:$akkaVersion"
-        compile "com.typesafe.akka:akka-remote_2.10:$akkaVersion"
+
     }
 }
 
 project("server") {
     dependencies {
         compile(project(":core"))
+        compile "com.typesafe.akka:akka-actor_2.10:$akkaVersion"
+        compile "com.typesafe.akka:akka-remote_2.10:$akkaVersion"
     }
 }
 
 project("client") {
+    sourceSets.main.java {
+        srcDir "gen"
+    }
+
     dependencies {
         compile(project(":core"))
+        compile "com.typesafe.akka:akka-actor_2.10:$akkaVersion"
+        compile "com.typesafe.akka:akka-remote_2.10:$akkaVersion"
     }
 
     idea.module {
         jdkName = "Android 2.3.3 Platform"
 
         iml.withXml {
-            def jdkNode = it.asNode().depthFirst().find { it.name() == "orderEntry" && it.@type == "jdk" }
-            jdkNode.@jdkType = "Android SDK"
+            def module = it.asNode()
+
+            def facetManager = module.component.find { it.@name == "FacetManager" }
+            if (!facetManager) {
+                facetManager = module.appendNode("component", [name: "FacetManager"])
+            }
+
+            def scalaFacet = facetManager.facet.find { it.@type == "android" }
+            if (!scalaFacet) {
+                scalaFacet = facetManager.appendNode("facet", [type: "android", name: "Android"])
+            }
+
+            def configuration = scalaFacet.configuration[0]
+            if (!configuration) {
+                configuration = scalaFacet.appendNode("configuration")
+            }
+
+            def runProguard = configuration.option.find { it.@name == "RUN_PROGUARD" }
+            if (!runProguard) {
+                runProguard = configuration.appendNode("option", [name: "RUN_PROGUARD"])
+            }
+            runProguard.@value = "true"
+
+            def updatePropertyFiles = configuration.option.find { it.@name == "UPDATE_PROPERTY_FILES" }
+            if (!updatePropertyFiles) {
+                updatePropertyFiles = configuration.appendNode("option", [name: "UPDATE_PROPERTY_FILES"])
+            }
+            updatePropertyFiles.@value = "true"
+
+            def newModuleRootManager = module.component.find { it.@name == "NewModuleRootManager" }
+            def jdkOrderEntry = newModuleRootManager.orderEntry.find { it.@type == "jdk" }
+            jdkOrderEntry.@jdkType = "Android SDK"
         }
     }
 }
