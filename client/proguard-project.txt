@@ -19,6 +19,9 @@ public <init>(...);
 -keep class akka.serialization.ProtobufSerializer {
 *;
 }
+-keep class akka.remote.serialization.DaemonMsgCreateSerializer {
+*;
+}
 -keep class com.google.protobuf.GeneratedMessage {
 *;
 }

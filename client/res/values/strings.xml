@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Akkdroid Client</string>
+    <string name="sendToServer">Send</string>
+    <string name="messageToSendToServer">Message to send to server</string>
 </resources>
