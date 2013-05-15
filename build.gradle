@@ -1,5 +1,5 @@
 task wrapper(type: Wrapper) {
-    gradleVersion = "1.5"
+    gradleVersion = "1.6"
 }
 
 allprojects {
@@ -10,9 +10,7 @@ allprojects {
 
     sourceCompatibility = 1.6
     targetCompatibility = 1.6
-}
 
-subprojects {
     ext {
         scalaVersion = "2.10.1"
         akkaVersion = "2.1.2"
@@ -23,7 +21,6 @@ subprojects {
     }
 
     dependencies {
-        scalaTools "org.scala-lang:scala-compiler:$scalaVersion"
         compile "org.scala-lang:scala-library:$scalaVersion"
     }
 
