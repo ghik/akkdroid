@@ -18,4 +18,9 @@
             android:text="@string/sendToServer"
             android:id="@+id/sendButton"
             android:layout_gravity="center"/>
+
+    <ListView
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/messagesList"/>
 </LinearLayout>

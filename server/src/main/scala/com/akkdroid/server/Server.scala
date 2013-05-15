@@ -14,6 +14,6 @@ object Server {
     val system = ActorSystem("server-system")
     system.eventStream.setLogLevel(Logging.DebugLevel)
 
-    val actor = system.actorOf(Props[LoggingActor], "server-actor")
+    val actor = system.actorOf(Props[ServerActor], "server-actor")
   }
 }
