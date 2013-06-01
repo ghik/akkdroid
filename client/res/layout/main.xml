@@ -6,21 +6,29 @@
               android:layout_height="match_parent">
 
     <EditText
-            android:layout_width="wrap_content"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:id="@+id/messageText"
-            android:layout_gravity="center"
             android:hint="@string/messageToSendToServer"/>
 
-    <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/sendToServer"
-            android:id="@+id/sendButton"
-            android:layout_gravity="center"/>
-
-    <ListView
+    <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="fill_parent"
+            android:layout_height="42dp">
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:text="@string/settingsText"
+                android:id="@+id/settingsButton" android:layout_gravity="center"/>
+        <Button
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:text="@string/sendToServer"
+                android:id="@+id/sendButton"
+                android:layout_gravity="center"/>
+    </LinearLayout>
+    <ListView
+            android:layout_width="wrap_content"
             android:layout_height="fill_parent"
-            android:id="@+id/messagesList"/>
+            android:id="@+id/messagesList" android:layout_gravity="right|center_vertical"/>
 </LinearLayout>
