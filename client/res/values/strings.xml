@@ -2,12 +2,13 @@
 <resources>
     <string name="app_name">Akkdroid Client</string>
     <string name="sendToServer">Send</string>
+    <string name="settingsText">settings</string>
+    <string name="messageToSendToServer">Message to send to server</string>
+
     <string name="pref_ip_value">192.168.192.245</string>
     <string name="pref_ip_title">Hostname</string>
     <string name="pref_ip_desc">Server hostname</string>
     <string name="pref_port_value">2552</string>
     <string name="pref_port_title">Port</string>
     <string name="pref_port_desc">Server port</string>
-    <string name="settingsText">settings</string>
-    <string name="messageToSendToServer">Message to send to server</string>
 </resources>

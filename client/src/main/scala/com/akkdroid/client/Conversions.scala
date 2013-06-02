@@ -9,13 +9,19 @@ object Conversions {
     def onClick(fun: View => Any) {
       view.setOnClickListener(new OnClickListener {
         def onClick(target: View) {
-          val t = new Thread(new Runnable {
-            def run() {
-              fun(target)
-            }
-          })
-          t.start()
+          fun(target)
         }
+      })
+    }
+
+
+    def onClickAsync(fun: View => Any) {
+      onClick({ target =>
+       new Thread(new Runnable {
+         def run() {
+           fun(target)
+         }
+       }).start()
       })
     }
   }
