@@ -59,6 +59,7 @@ project("client") {
         compile(project(":core"))
         compile "com.typesafe.akka:akka-actor_2.10:$akkaVersion"
         compile "com.typesafe.akka:akka-remote_2.10:$akkaVersion"
+        compile "com.typesafe.akka:akka-cluster_2.10:$akkaVersion"
     }
 
     idea.module {
