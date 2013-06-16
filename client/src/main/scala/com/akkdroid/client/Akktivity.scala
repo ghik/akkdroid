@@ -7,6 +7,10 @@ import android.widget._
 import java.{lang => jl, util => ju}
 import android.content.Intent
 import android.preference.PreferenceManager
+import java.net.NetworkInterface
+import scala.collection.JavaConverters._
+import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
+import com.akkdroid.util.EnumerationIterator
 
 class Akktivity extends Activity {
 
@@ -74,9 +78,18 @@ class Akktivity extends Activity {
     s"akka://server-system@$ip:$port/user/server-actor"
   }
 
+  private def getInetAddress =
+    new EnumerationIterator(NetworkInterface.getNetworkInterfaces).asScala.collectFirst {
+      case iface if iface.isUp && !iface.isLoopback && iface.getInetAddresses.hasMoreElements =>
+        iface.getInetAddresses.nextElement()
+    }
+
   private def initializeActors() {
     if (system == null) {
-      system = ActorSystem("mobile-system")
+      val inetAddress = getInetAddress.getOrElse(throw new Exception("No public IP address found!"))
+      val config = ConfigFactory.load().withValue("akka.remote.netty.tcp.hostname", ConfigValueFactory.fromAnyRef(inetAddress.toString))
+
+      system = ActorSystem("mobile-system", config)
 
       // all messages received by local actor will be passed to handler and handled with code below
       val handler = new Handler

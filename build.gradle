@@ -14,6 +14,7 @@ allprojects {
     ext {
         scalaVersion = "2.10.1"
         akkaVersion = "2.2.0-RC1"
+        guavaVersion = "14.0.1"
     }
 
     repositories {

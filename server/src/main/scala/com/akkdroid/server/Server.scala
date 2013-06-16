@@ -14,7 +14,7 @@ object Server {
   def main(args: Array[String]) {
     var config = ConfigFactory.load()
     if (args.length > 0) {
-      config = config.withValue("akka.remote.netty.hostname", ConfigValueFactory.fromAnyRef(args(0)))
+      config = config.withValue("akka.remote.netty.tcp.hostname", ConfigValueFactory.fromAnyRef(args(0)))
     }
     val system = ActorSystem("server-system", config)
     system.eventStream.setLogLevel(Logging.DebugLevel)
