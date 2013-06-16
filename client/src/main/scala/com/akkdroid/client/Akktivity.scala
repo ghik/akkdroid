@@ -75,19 +75,19 @@ class Akktivity extends Activity {
     val pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext)
     val ip: String = pref.getString("pref_ip", getString(R.string.pref_ip_value))
     val port: String = pref.getString("pref_port", getString(R.string.pref_port_value))
-    s"akka://server-system@$ip:$port/user/server-actor"
+    s"akka.tcp://server-system@$ip:$port/user/server-actor"
   }
 
   private def getInetAddress =
     new EnumerationIterator(NetworkInterface.getNetworkInterfaces).asScala.collectFirst {
       case iface if iface.isUp && !iface.isLoopback && iface.getInetAddresses.hasMoreElements =>
-        iface.getInetAddresses.nextElement()
+        iface.getInetAddresses.nextElement().getHostAddress
     }
 
   private def initializeActors() {
     if (system == null) {
       val inetAddress = getInetAddress.getOrElse(throw new Exception("No public IP address found!"))
-      val config = ConfigFactory.load().withValue("akka.remote.netty.tcp.hostname", ConfigValueFactory.fromAnyRef(inetAddress.toString))
+      val config = ConfigFactory.load().withValue("akka.remote.netty.tcp.hostname", ConfigValueFactory.fromAnyRef(inetAddress))
 
       system = ActorSystem("mobile-system", config)
 

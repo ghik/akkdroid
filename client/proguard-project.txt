@@ -1,33 +1,16 @@
 -keepclassmembers class * {
  ** MODULE$;
 }
--keep public class akka.actor.LocalActorRefProvider {
-public <init>(...);
-}
--keep public class akka.remote.RemoteActorRefProvider {
-public <init>(...);
-}
--keep class akka.actor.SerializedActorRef {
-*;
-}
--keep class akka.remote.netty.NettyRemoteTransport {
-*;
-}
--keep class akka.serialization.JavaSerializer {
-*;
-}
--keep class akka.serialization.ProtobufSerializer {
-*;
-}
--keep class akka.remote.serialization.DaemonMsgCreateSerializer {
-*;
-}
+-keep class akka.actor.**
+-keep class akka.logging.**
+-keep class akka.remote.**
+-keep class akka.serialization.**
+-keep class akka.dispatch.**
 -keep class com.google.protobuf.GeneratedMessage {
 *;
 }
--keep class akka.event.Logging*
--keep class akka.event.Logging$LogExt{
-*;
+-keepclassmembers class akka.** {
+public <init>(...);
 }
 -keep class scala.Option
 -keep class scala.Function1
@@ -35,8 +18,6 @@ public <init>(...);
 -keep class scala.collection.SeqLike {
 public protected *;
 }
--keep class akka.**
--keepclassmembers class akka.**
 -keep class org.omg.**
 -keep class scala.Tuple2
 -dontskipnonpubliclibraryclassmembers
