@@ -18,6 +18,9 @@ public <init>(...);
 -keep class scala.collection.SeqLike {
 public protected *;
 }
+-keep class scala.collection.MapLike {
+public protected *;
+}
 -keep class org.omg.**
 -keep class scala.Tuple2
 -dontskipnonpubliclibraryclassmembers
