@@ -35,7 +35,9 @@ class Akktivity extends Activity {
   private var settingsButton: Button = null
   private var messagesList: ListView = null
 
-  def getView = {
+  // obtains list of addresses of members that have recently sent us ping message
+  // this is done by consulting membersManager actor
+  def getView: List[InetAddress] = {
     val p = Promise[List[InetAddress]]
     membersManager ! GetMembers(p)
     Await.result(p.future, Duration.Inf)
