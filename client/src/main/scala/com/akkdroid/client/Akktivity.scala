@@ -13,7 +13,8 @@ import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
 import com.akkdroid.util.EnumerationIterator
 import scala.concurrent.duration._
 import scala.concurrent.{Promise, Await}
-import com.akkdroid.client.MembersManager.GetMembers
+import com.akkdroid.client.MembersManager.{SetListener, GetMembers}
+import android.util.Log
 
 class Akktivity extends Activity {
 
@@ -46,23 +47,13 @@ class Akktivity extends Activity {
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
 
-    setContentView(R.layout.main)
-    loadUI()
 
     val items = new ju.ArrayList[String]
     adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, items)
-    messagesList.setAdapter(adapter)
-
     initActorSystem()
     updateServerActorRef()
 
-    sendButton.onClickAsync { _ =>
-      implicit val sender = localActor // impersonate our local actor so it can receive responses from server
-      serverActor ! messageTextView.getText.toString
-    }
-    settingsButton.onClick { _ =>
-      startActivity(new Intent(getBaseContext, classOf[AkkdroidPreferences]))
-    }
+    loadContactsUI()
   }
 
   private def initActorSystem() {
@@ -99,11 +90,41 @@ class Akktivity extends Activity {
     super.onDestroy()
   }
 
-  private def loadUI() {
+  private def loadContactsUI() {
+    setContentView(R.layout.contacts)
+    val contactsList = findViewById(R.id.peerList).asInstanceOf[ListView]
+
+    val items = new ju.ArrayList[String]
+    val adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, items)
+    contactsList.setAdapter(adapter)
+    //contactsList.onClick()
+    val handler = new Handler
+    def newLocalActor = new HandlerDispatcherActor(handler, msg => {
+      adapter.clear()
+      val list = getView
+      list.foreach(a => adapter.add(a.toString))
+      Log.i("Akktivity", "updated peer list")
+    })
+    val localActor = system.actorOf(Props(newLocalActor), name = "peers-update-handler")
+    membersManager ! SetListener(localActor)
+
+  }
+
+  private def loadTalkUI() {
+    setContentView(R.layout.talk)
     sendButton = findViewById(R.id.sendButton).asInstanceOf[Button]
     messageTextView = findViewById(R.id.messageText).asInstanceOf[TextView]
     settingsButton = findViewById(R.id.settingsButton).asInstanceOf[Button]
     messagesList = findViewById(R.id.messagesList).asInstanceOf[ListView]
+    messagesList.setAdapter(adapter)
+
+    sendButton.onClickAsync { _ =>
+      implicit val sender = localActor // impersonate our local actor so it can receive responses from server
+      serverActor ! messageTextView.getText.toString
+    }
+    settingsButton.onClick { _ =>
+      startActivity(new Intent(getBaseContext, classOf[AkkdroidPreferences]))
+    }
   }
 
   private def loadServiceURL(): String = {
