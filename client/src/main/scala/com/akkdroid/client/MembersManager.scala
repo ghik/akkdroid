@@ -7,10 +7,12 @@ import java.net.InetAddress
 import scala.concurrent.Promise
 import com.akkdroid.client.MembersManager._
 import android.util.Log
+import java.util.concurrent.atomic.AtomicReference
 
-class MembersManager(val config: Config) extends Actor with PingConfig {
+class MembersManager(val configRef: AtomicReference[Config]) extends Actor with PingConfig {
+  val config = configRef.get()
   private var listener: ActorRef = null
-  private val members = new mutable.HashMap[InetAddress, Long]
+  private val members = new mutable.HashMap[Peer, Long]
   private def expireOld() {
     val minTime = System.currentTimeMillis - 1000 * downAfter
     members.retain { case (_, tstamp) => tstamp > minTime}
@@ -21,10 +23,10 @@ class MembersManager(val config: Config) extends Actor with PingConfig {
       expireOld()
       promise.success(members.keysIterator.toList)
 
-    case PingReceived(address, tstamp) =>
+    case PingReceived(packet, tstamp) =>
       expireOld()
-      Log.i("MembersManager", s"Ping from $address received at $tstamp")
-      members(address) = tstamp
+      Log.i("MembersManager", s"Ping from $packet received at $tstamp")
+      members(packet) = tstamp
       if (listener != null)
         listener ! MembersUpdated
     // pattern sponsored by extractor object defined in MembersManager companion object
@@ -39,7 +41,7 @@ class MembersManager(val config: Config) extends Actor with PingConfig {
 
 object MembersManager {
 
-  case class PingReceived(address: InetAddress, tstamp: Long)
+  case class PingReceived(packet: Peer, tstamp: Long)
 
   abstract class Failure {
     val cause: Exception
@@ -54,7 +56,7 @@ object MembersManager {
 
   case class PingReceiveFailed(cause: Exception) extends Failure
 
-  case class GetMembers(promise: Promise[List[InetAddress]])
+  case class GetMembers(promise: Promise[List[Peer]])
 
   case class MembersUpdated()
 

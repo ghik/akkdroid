@@ -10,9 +10,5 @@ class AkkdroidPreferences extends PreferenceActivity {
       addPreferencesFromResource(R.xml.preferences)
   }
 
-  override def onCreateOptionsMenu(menu: Menu) : Boolean = {
-    menu.add(Menu.NONE, 0, 0, "Show current settings")
-    super.onCreateOptionsMenu(menu)
-  }
 
 }

@@ -11,4 +11,7 @@
     <string name="pref_port_value">2552</string>
     <string name="pref_port_title">Port</string>
     <string name="pref_port_desc">Server port</string>
+    <string name="pref_nick_value">user1</string>
+    <string name="pref_nick_title">Nick</string>
+    <string name="pref_nick_desc">Username</string>
 </resources>

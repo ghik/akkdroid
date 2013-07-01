@@ -8,6 +8,12 @@
             android:contentDescription="@string/pref_ip_desc"
             />
     <EditTextPreference
+            android:key="pref_nick"
+            android:title="@string/pref_nick_title"
+            android:defaultValue="@string/pref_nick_value"
+            android:contentDescription="@string/pref_nick_desc"
+            />
+    <EditTextPreference
             android:key="pref_port"
             android:inputType="number"
             android:title="@string/pref_port_title"

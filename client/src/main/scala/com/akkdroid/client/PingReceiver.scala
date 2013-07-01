@@ -5,21 +5,20 @@ import java.net.{InetAddress, DatagramPacket, MulticastSocket}
 import akka.actor.ActorRef
 import android.util.Log
 import com.akkdroid.client.MembersManager.{PingReceived, PingReceiveFailed}
+import java.util.concurrent.atomic.AtomicReference
 
-class PingReceiver(val config: Config, listener: ActorRef) extends Thread with PingConfig {
+class PingReceiver(val configRef: AtomicReference[Config], listener: ActorRef) extends Thread with PingConfig {
+  val config = configRef.get()
   private val socket = new MulticastSocket(port)
   socket.joinGroup(group)
 
-  private val bytes = new Array[Byte](4096)
 
   override def run() {
     try {
       while (!socket.isClosed) {
         try {
-          val dp = new DatagramPacket(bytes, bytes.length)
-          socket.receive(dp)
-          val remoteAddr = JavaSerializer.deserialize(bytes).asInstanceOf[InetAddress]
-          listener ! PingReceived(remoteAddr, System.currentTimeMillis)
+          val packet = Peer.receive(socket)
+          listener ! PingReceived(packet, System.currentTimeMillis)
         } catch {
           case e: Exception =>
             listener ! PingReceiveFailed(e)

@@ -2,13 +2,14 @@ package com.akkdroid.client
 
 import com.typesafe.config.Config
 import java.net.InetAddress
+import java.util.concurrent.atomic.AtomicReference
 
 trait PingConfig {
-  val config: Config
+  val configRef: AtomicReference[Config]
 
-  val ip = InetAddress.getByName(config.getString("akka.remote.netty.tcp.hostname"))
-  val group = InetAddress.getByName(config.getString("akkdroid.view.group"))
-  val port = config.getInt("akkdroid.view.port")
-  val updateInterval = config.getInt("akkdroid.view.update-interval")
-  val downAfter = config.getInt("akkdroid.view.down-after")
+  val ip = InetAddress.getByName(configRef.get().getString("akka.remote.netty.tcp.hostname"))
+  val group = InetAddress.getByName(configRef.get().getString("akkdroid.view.group"))
+  val port = configRef.get().getInt("akkdroid.view.port")
+  val updateInterval = configRef.get().getInt("akkdroid.view.update-interval")
+  val downAfter = configRef.get().getInt("akkdroid.view.down-after")
 }

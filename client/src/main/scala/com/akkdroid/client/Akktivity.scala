@@ -9,20 +9,20 @@ import android.content.Intent
 import android.preference.PreferenceManager
 import java.net.{InetAddress, NetworkInterface}
 import scala.collection.JavaConverters._
-import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
+import com.typesafe.config.{Config, ConfigValueFactory, ConfigFactory}
 import com.akkdroid.util.EnumerationIterator
 import scala.concurrent.duration._
 import scala.concurrent.{Promise, Await}
 import com.akkdroid.client.MembersManager.{SetListener, GetMembers}
 import android.util.Log
+import android.view.{MenuItem, Menu}
+import java.util.concurrent.atomic.AtomicReference
 
 class Akktivity extends Activity {
 
   import Conversions._
 
-  private val config = ConfigFactory.load()
-    .withValue("akka.remote.netty.tcp.hostname", ConfigValueFactory.fromAnyRef(
-    getInetAddress.getOrElse(throw new Exception("No public IP address found!"))))
+  private val config = new AtomicReference[Config](ConfigFactory.load())
 
   private var system: ActorSystem = null
   private var serviceURL: String = null
@@ -34,22 +34,35 @@ class Akktivity extends Activity {
   private var messageTextView: TextView = null
   private var sendButton: Button = null
   private var settingsButton: Button = null
+  private var settingsMenu: MenuItem = null
   private var messagesList: ListView = null
 
   // obtains list of addresses of members that have recently sent us ping message
   // this is done by consulting membersManager actor
-  def getView: List[InetAddress] = {
-    val p = Promise[List[InetAddress]]
+  def getView: List[Peer] = {
+    val p = Promise[List[Peer]]
     membersManager ! GetMembers(p)
     Await.result(p.future, Duration.Inf)
   }
 
+  override def onCreateOptionsMenu(menu: Menu) : Boolean = {
+    settingsMenu = menu.add(Menu.NONE, 0, 0, "Show current settings")
+    super.onCreateOptionsMenu(menu)
+  }
+
+  override def onOptionsItemSelected(menu : MenuItem) : Boolean = {
+    if (menu equals settingsMenu) {
+        startActivity(new Intent(getBaseContext, classOf[AkkdroidPreferences]))
+        loadSettings()
+        true
+    } else false
+  }
+
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
-
-
+    loadSettings()
     val items = new ju.ArrayList[String]
-    adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, items)
+    adapter = new ArrayAdapter(this, android.R.layout.simple_expandable_list_item_2, items)
     initActorSystem()
     updateServerActorRef()
 
@@ -57,10 +70,10 @@ class Akktivity extends Activity {
   }
 
   private def initActorSystem() {
-    system = ActorSystem("mobile-system", config)
+    system = ActorSystem("mobile-system", config.get())
     membersManager = system.actorOf(Props(new MembersManager(config)), name = "membersManager")
 
-    val tickInterval = config.getInt("akkdroid.view.update-interval")
+    val tickInterval = config.get().getInt("akkdroid.view.update-interval")
     implicit val executionContext = system.dispatcher
     system.scheduler.schedule(0.seconds, tickInterval.seconds, new PingSender(config, membersManager))
     new PingReceiver(config, membersManager).start()
@@ -97,12 +110,11 @@ class Akktivity extends Activity {
     val items = new ju.ArrayList[String]
     val adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, items)
     contactsList.setAdapter(adapter)
-    //contactsList.onClick()
     val handler = new Handler
     def newLocalActor = new HandlerDispatcherActor(handler, msg => {
       adapter.clear()
       val list = getView
-      list.foreach(a => adapter.add(a.toString))
+      list.foreach(a => adapter.add(a.nick + " (" + a.addr + ")"))
       Log.i("Akktivity", "updated peer list")
     })
     val localActor = system.actorOf(Props(newLocalActor), name = "peers-update-handler")
@@ -134,12 +146,23 @@ class Akktivity extends Activity {
     s"akka.tcp://server-system@$ip:$port/user/server-actor"
   }
 
+  private def loadSettings() {
+    val pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext)
+    val newNick: String = pref.getString("pref_nick", getString(R.string.pref_nick_value))
+    val hostname = getInetAddress.getOrElse(throw new Exception("No public IP address found!"))
+    var conf = config.get()
+    conf = conf.withValue("akka.remote.netty.tcp.hostname", ConfigValueFactory.fromAnyRef(hostname))
+    conf = conf.withValue("akkdroid.user.nick", ConfigValueFactory.fromAnyRef(newNick))
+    config.set(conf)
+  }
+
+
+
   private def getInetAddress =
     new EnumerationIterator(NetworkInterface.getNetworkInterfaces).asScala.collectFirst {
       case iface if iface.isUp && !iface.isLoopback && iface.getInetAddresses.hasMoreElements =>
         iface.getInetAddresses.nextElement().getHostAddress
     }
-
   private def updateServerActorRef() {
     val newServiceURL = loadServiceURL()
     if (newServiceURL != serviceURL) {
