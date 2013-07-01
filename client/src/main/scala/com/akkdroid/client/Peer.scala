@@ -2,7 +2,7 @@ package com.akkdroid.client
 
 import java.net.{DatagramPacket, DatagramSocket, InetAddress}
 
-case class Peer(addr: InetAddress, nick: String = null)
+case class Peer(addr: InetAddress, nick: String)
 
 object Peer {
   def receive(socket: DatagramSocket): Peer = {

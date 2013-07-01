@@ -9,26 +9,18 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:id="@+id/messageText"
-            android:hint="@string/messageToSendToServer" android:singleLine="true"/>
+            android:hint="@string/messageToSendToServer" android:singleLine="true"
+            android:inputType="textCapSentences|textAutoComplete"/>
 
-    <LinearLayout
-            android:orientation="horizontal"
+    <Button
             android:layout_width="fill_parent"
-            android:layout_height="42dp">
-        <Button
-                android:layout_width="wrap_content"
-                android:layout_height="fill_parent"
-                android:text="@string/settingsText"
-                android:id="@+id/settingsButton" android:layout_gravity="center"/>
-        <Button
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:text="@string/sendToServer"
-                android:id="@+id/sendButton"
-                android:layout_gravity="center"/>
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:text="@string/sendToServer"
+            android:id="@+id/sendButton"
+            android:layout_gravity="center"/>
     <ListView
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
-            android:id="@+id/messagesList" android:layout_gravity="right|center_vertical"/>
+            android:id="@+id/messagesList" android:layout_gravity="right|center_vertical"
+            android:layout_marginTop="74dp"/>
 </LinearLayout>

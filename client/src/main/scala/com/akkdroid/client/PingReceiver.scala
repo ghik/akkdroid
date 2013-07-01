@@ -1,7 +1,7 @@
 package com.akkdroid.client
 
 import com.typesafe.config.Config
-import java.net.{InetAddress, DatagramPacket, MulticastSocket}
+import java.net.MulticastSocket
 import akka.actor.ActorRef
 import android.util.Log
 import com.akkdroid.client.MembersManager.{PingReceived, PingReceiveFailed}
@@ -11,7 +11,6 @@ class PingReceiver(val configRef: AtomicReference[Config], listener: ActorRef) e
   val config = configRef.get()
   private val socket = new MulticastSocket(port)
   socket.joinGroup(group)
-
 
   override def run() {
     try {

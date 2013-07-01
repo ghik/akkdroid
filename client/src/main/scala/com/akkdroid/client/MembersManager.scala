@@ -3,7 +3,6 @@ package com.akkdroid.client
 import com.typesafe.config.Config
 import scala.collection.mutable
 import akka.actor.{ActorRef, Actor}
-import java.net.InetAddress
 import scala.concurrent.Promise
 import com.akkdroid.client.MembersManager._
 import android.util.Log

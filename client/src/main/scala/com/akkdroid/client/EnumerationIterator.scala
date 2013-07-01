@@ -1,5 +1,4 @@
-package com.akkdroid.util
-
+package com.akkdroid.client
 import java.{lang => jl, util => ju}
 
 class EnumerationIterator[T](enumeration: ju.Enumeration[T]) extends ju.Iterator[T] {

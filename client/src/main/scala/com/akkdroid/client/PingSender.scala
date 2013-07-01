@@ -6,13 +6,6 @@ import akka.actor.ActorRef
 import com.akkdroid.client.MembersManager.PingSendFailed
 import java.util.concurrent.atomic.AtomicReference
 
-/**
- * Created with IntelliJ IDEA.
- * User: ghik
- * Date: 30.06.13
- * Time: 01:00
- * To change this template use File | Settings | File Templates.
- */
 class PingSender(val configRef: AtomicReference[Config], listener: ActorRef) extends Runnable with PingConfig {
   val config = configRef.get()
   private val socket = new DatagramSocket
