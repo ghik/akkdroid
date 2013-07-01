@@ -9,7 +9,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:id="@+id/messageText"
-            android:hint="@string/messageToSendToServer"/>
+            android:hint="@string/messageToSendToServer" android:singleLine="true"/>
 
     <LinearLayout
             android:orientation="horizontal"

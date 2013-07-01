@@ -119,7 +119,12 @@ class Akktivity extends Activity {
 
     class OnClickHandler extends AdapterView.OnItemClickListener {
       override def  onItemClick(parent: AdapterView[_], v: View, position: Int, id: Long) {
-        startActivity(new Intent(getBaseContext, classOf[TalkAkktivity]))
+        val bundle = new Bundle()
+        val peers = getView
+        bundle.putString("remote-user", peers(position).addr.toString)
+        val intent = new Intent(getBaseContext, classOf[TalkAkktivity])
+        intent.putExtras(bundle)
+        startActivity(intent)
         Log.i("Akktivity", s"pos:$position, id:$id")
       }
     }

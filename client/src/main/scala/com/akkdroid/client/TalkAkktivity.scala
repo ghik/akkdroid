@@ -56,15 +56,15 @@ class TalkAkktivity extends Activity {
     settingsButton = findViewById(R.id.settingsButton).asInstanceOf[Button]
     messagesList = findViewById(R.id.messagesList).asInstanceOf[ListView]
     val items = new ju.ArrayList[String]
+    val bundle = getIntent().getExtras()
+    val user = bundle.getString("remote-user")
+    items.add(s"Started conversation with $user")
     adapter = new ArrayAdapter(this, android.R.layout.simple_expandable_list_item_1, items)
     messagesList.setAdapter(adapter)
 
     sendButton.onClickAsync { _ =>
-      //implicit val sender = localActor // impersonate our local actor so it can receive responses from server
-      //serverActor ! messageTextView.getText.toString
-    }
-    settingsButton.onClick { _ =>
-      startActivity(new Intent(getBaseContext, classOf[AkkdroidPreferences]))
+      //  TODO
+      //talkActor ! messageTextView.getText.toString
     }
   }
 }
