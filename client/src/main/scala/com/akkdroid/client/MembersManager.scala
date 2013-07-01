@@ -31,7 +31,7 @@ class MembersManager(val configRef: AtomicReference[Config]) extends Actor with 
         listener ! MembersUpdated
     // pattern sponsored by extractor object defined in MembersManager companion object
 
-    case SetListener(actor) =>
+    case SetMemberUpdateListener(actor) =>
       listener = actor
 
     case Failure(cause) =>
@@ -60,5 +60,5 @@ object MembersManager {
 
   case class MembersUpdated()
 
-  case class SetListener(actor: ActorRef)
+  case class SetMemberUpdateListener(actor: ActorRef)
 }

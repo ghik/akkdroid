@@ -3,14 +3,13 @@ package com.akkdroid.client
 import android.app.Activity
 import android.view.{MenuItem, Menu}
 import android.content.Intent
-import android.os.Bundle
+import android.os.{Handler, Bundle}
 import java.{util => ju}
 import android.widget.{ListView, TextView, Button, ArrayAdapter}
-import com.akkdroid.client.TalkActor.{ForwardMessage, TalkMessage}
+import com.akkdroid.client.TalkActor.{SetTalkListener, ForwardMessage, TalkMessage}
 import android.preference.PreferenceManager
-import akka.actor.{ActorSelection, ActorRef}
+import akka.actor.{Props, ActorSelection, ActorRef}
 import android.util.Log
-
 class TalkAkktivity extends Activity {
 
   import Conversions._
@@ -78,6 +77,19 @@ class TalkAkktivity extends Activity {
     messagesList.setAdapter(adapter)
 
     recipient = Akktivity.system.actorSelection(bundle.getString("remote-ref"))
+
+    val handler = new Handler
+    def newLocalActor = new HandlerDispatcherActor(handler, msg => {
+      msg match {
+        case TalkMessage(sender, text) => {
+          Log.e("TalkAkktivity", "got MSG!!!")
+          adapter.add(s"<$sender> $text")
+          adapter.notifyDataSetChanged()
+        }
+      }
+    })
+    val localActor = Akktivity.system.actorOf(Props(newLocalActor), name = "talk-update-handler")
+    Akktivity.talkActor ! SetTalkListener(localActor)
 
     sendButton.onClickAsync { _ =>
       Log.i("TalkAkktivity", "sending message START")

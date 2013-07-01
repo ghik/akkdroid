@@ -13,7 +13,7 @@ import com.typesafe.config.{Config, ConfigValueFactory, ConfigFactory}
 import com.akkdroid.util.EnumerationIterator
 import scala.concurrent.duration._
 import scala.concurrent.{Promise, Await}
-import com.akkdroid.client.MembersManager.{SetListener, GetMembers}
+import com.akkdroid.client.MembersManager.{SetMemberUpdateListener, GetMembers}
 import android.util.Log
 import android.view.{View, MenuItem, Menu}
 import java.util.concurrent.atomic.AtomicReference
@@ -118,9 +118,10 @@ class Akktivity extends Activity {
       val list = getView
       list.foreach(a => adapter.add(a.nick + " (" + a.addr + ")"))
       Log.i("Akktivity", "updated peer list")
+      adapter.notifyDataSetChanged()
     })
     val localActor = system.actorOf(Props(newLocalActor), name = "peers-update-handler")
-    membersManager ! SetListener(localActor)
+    membersManager ! SetMemberUpdateListener(localActor)
 
     class OnClickHandler extends AdapterView.OnItemClickListener {
       override def  onItemClick(parent: AdapterView[_], v: View, position: Int, id: Long) {
