@@ -28,6 +28,7 @@ class Akktivity extends Activity {
   private var serviceURL: String = null
   private var adapter: ArrayAdapter[String] = null
   private var localActor: ActorRef = null
+  private var talkActor: ActorRef = null
   private var serverActor: ActorSelection = null
   private var membersManager: ActorRef = null
 
@@ -85,6 +86,7 @@ class Akktivity extends Activity {
   private def initActorSystem() {
     system = ActorSystem("mobile-system", config.get())
     membersManager = system.actorOf(Props(new MembersManager(config)), name = "membersManager")
+    talkActor = system.actorOf(Props(new TalkActor), name = "talk-actor")
 
     val tickInterval = config.get().getInt("akkdroid.view.update-interval")
     implicit val executionContext = system.dispatcher
@@ -121,17 +123,19 @@ class Akktivity extends Activity {
       override def  onItemClick(parent: AdapterView[_], v: View, position: Int, id: Long) {
         val bundle = new Bundle()
         val peers = getView
-        bundle.putString("remote-user", peers(position).addr.toString)
+        val ip = peers(position).addr.toString
+        bundle.putString("remote-user", ip)
+        //bundle.putSerializable("remote-ref", system.actorSelection(s"akka.tcp://mobile-system@$ip:2552/user/talk-actor"))
+        //bundle.putSerializable("local-ref", talkActor)
         val intent = new Intent(getBaseContext, classOf[TalkAkktivity])
         intent.putExtras(bundle)
         startActivity(intent)
         Log.i("Akktivity", s"pos:$position, id:$id")
       }
     }
-    contactsList.setOnItemClickListener(new OnClickHandler);
+    contactsList.setOnItemClickListener(new OnClickHandler)
 
   }
-
 
   private def loadServiceURL(): String = {
     val pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext)
@@ -150,13 +154,12 @@ class Akktivity extends Activity {
     config.set(conf)
   }
 
-
-
   private def getInetAddress =
     new EnumerationIterator(NetworkInterface.getNetworkInterfaces).asScala.collectFirst {
       case iface if iface.isUp && !iface.isLoopback && iface.getInetAddresses.hasMoreElements =>
         iface.getInetAddresses.nextElement().getHostAddress
     }
+
   private def updateServerActorRef() {
     val newServiceURL = loadServiceURL()
     if (newServiceURL != serviceURL) {

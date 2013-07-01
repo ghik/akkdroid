@@ -6,6 +6,9 @@ import android.content.Intent
 import android.os.Bundle
 import java.{util => ju}
 import android.widget.{ListView, TextView, Button, ArrayAdapter}
+import com.akkdroid.client.TalkActor.{ForwardMessage, TalkMessage}
+import android.preference.PreferenceManager
+import akka.actor.{ActorSelection, ActorRef}
 
 class TalkAkktivity extends Activity {
 
@@ -18,6 +21,9 @@ class TalkAkktivity extends Activity {
 
   private var settingsMenu: MenuItem = null
   private var adapter: ArrayAdapter[String] = null
+
+  private var talkActor: ActorRef = null
+  private var recipient: ActorSelection = null
 
   override def onCreateOptionsMenu(menu: Menu) : Boolean = {
     settingsMenu = menu.add(Menu.NONE, 0, 0, "Show current settings")
@@ -48,6 +54,11 @@ class TalkAkktivity extends Activity {
     super.onDestroy()
   }
 
+  private def getNick(): String = {
+    val pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext)
+    val newNick: String = pref.getString("pref_nick", getString(R.string.pref_nick_value))
+    newNick
+  }
 
   private def loadTalkUI() {
     setContentView(R.layout.talk)
@@ -57,14 +68,16 @@ class TalkAkktivity extends Activity {
     messagesList = findViewById(R.id.messagesList).asInstanceOf[ListView]
     val items = new ju.ArrayList[String]
     val bundle = getIntent().getExtras()
+
     val user = bundle.getString("remote-user")
     items.add(s"Started conversation with $user")
     adapter = new ArrayAdapter(this, android.R.layout.simple_expandable_list_item_1, items)
     messagesList.setAdapter(adapter)
 
+    //val ref = bundle.getString("remote-ref")
+
     sendButton.onClickAsync { _ =>
-      //  TODO
-      //talkActor ! messageTextView.getText.toString
+      //talkActor ! ForwardMessage(recipient, getNick(), messageTextView.getText.toString)
     }
   }
 }
