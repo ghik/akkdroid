@@ -39,5 +39,7 @@
         <activity android:name=".AkkdroidPreferences">
 
         </activity>
+
+        <activity android:name=".TalkAkktivity" />
     </application>
 </manifest>

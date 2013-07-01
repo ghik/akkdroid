@@ -15,7 +15,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Promise, Await}
 import com.akkdroid.client.MembersManager.{SetListener, GetMembers}
 import android.util.Log
-import android.view.{MenuItem, Menu}
+import android.view.{View, MenuItem, Menu}
 import java.util.concurrent.atomic.AtomicReference
 
 class Akktivity extends Activity {
@@ -31,19 +31,8 @@ class Akktivity extends Activity {
   private var serverActor: ActorSelection = null
   private var membersManager: ActorRef = null
 
-  private var messageTextView: TextView = null
-  private var sendButton: Button = null
-  private var settingsButton: Button = null
   private var settingsMenu: MenuItem = null
-  private var messagesList: ListView = null
 
-  // obtains list of addresses of members that have recently sent us ping message
-  // this is done by consulting membersManager actor
-  def getView: List[Peer] = {
-    val p = Promise[List[Peer]]
-    membersManager ! GetMembers(p)
-    Await.result(p.future, Duration.Inf)
-  }
 
   override def onCreateOptionsMenu(menu: Menu) : Boolean = {
     settingsMenu = menu.add(Menu.NONE, 0, 0, "Show current settings")
@@ -69,6 +58,30 @@ class Akktivity extends Activity {
     loadContactsUI()
   }
 
+  override def onStart() {
+    super.onStart()
+    updateServerActorRef()
+  }
+
+  override def onResume() {
+    super.onResume()
+    updateServerActorRef()
+  }
+
+  override def onDestroy() {
+    system.shutdown()
+
+    super.onDestroy()
+  }
+
+  // obtains list of addresses of members that have recently sent us ping message
+  // this is done by consulting membersManager actor
+  private def getView: List[Peer] = {
+    val p = Promise[List[Peer]]
+    membersManager ! GetMembers(p)
+    Await.result(p.future, Duration.Inf)
+  }
+
   private def initActorSystem() {
     system = ActorSystem("mobile-system", config.get())
     membersManager = system.actorOf(Props(new MembersManager(config)), name = "membersManager")
@@ -85,22 +98,6 @@ class Akktivity extends Activity {
       adapter.notifyDataSetChanged()
     })
     localActor = system.actorOf(Props(newLocalActor), name = "mobile-actor")
-  }
-
-  override def onStart() {
-    super.onStart()
-    updateServerActorRef()
-  }
-
-  override def onResume() {
-    super.onResume()
-    updateServerActorRef()
-  }
-
-  override def onDestroy() {
-    system.shutdown()
-
-    super.onDestroy()
   }
 
   private def loadContactsUI() {
@@ -120,24 +117,16 @@ class Akktivity extends Activity {
     val localActor = system.actorOf(Props(newLocalActor), name = "peers-update-handler")
     membersManager ! SetListener(localActor)
 
+    class OnClickHandler extends AdapterView.OnItemClickListener {
+      override def  onItemClick(parent: AdapterView[_], v: View, position: Int, id: Long) {
+        startActivity(new Intent(getBaseContext, classOf[TalkAkktivity]))
+        Log.i("Akktivity", s"pos:$position, id:$id")
+      }
+    }
+    contactsList.setOnItemClickListener(new OnClickHandler);
+
   }
 
-  private def loadTalkUI() {
-    setContentView(R.layout.talk)
-    sendButton = findViewById(R.id.sendButton).asInstanceOf[Button]
-    messageTextView = findViewById(R.id.messageText).asInstanceOf[TextView]
-    settingsButton = findViewById(R.id.settingsButton).asInstanceOf[Button]
-    messagesList = findViewById(R.id.messagesList).asInstanceOf[ListView]
-    messagesList.setAdapter(adapter)
-
-    sendButton.onClickAsync { _ =>
-      implicit val sender = localActor // impersonate our local actor so it can receive responses from server
-      serverActor ! messageTextView.getText.toString
-    }
-    settingsButton.onClick { _ =>
-      startActivity(new Intent(getBaseContext, classOf[AkkdroidPreferences]))
-    }
-  }
 
   private def loadServiceURL(): String = {
     val pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext)
