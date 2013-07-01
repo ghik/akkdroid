@@ -7,7 +7,7 @@ import android.widget._
 import java.{lang => jl, util => ju}
 import android.content.Intent
 import android.preference.PreferenceManager
-import java.net.{InetAddress, NetworkInterface}
+import java.net.{Inet4Address, InetAddress, NetworkInterface}
 import scala.collection.JavaConverters._
 import com.typesafe.config.{Config, ConfigValueFactory, ConfigFactory}
 import com.akkdroid.util.EnumerationIterator
@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicReference
 class Akktivity extends Activity {
 
   import Conversions._
+
 
   private val config = new AtomicReference[Config](ConfigFactory.load())
 
@@ -85,8 +86,10 @@ class Akktivity extends Activity {
 
   private def initActorSystem() {
     system = ActorSystem("mobile-system", config.get())
+    Akktivity.system = system
     membersManager = system.actorOf(Props(new MembersManager(config)), name = "membersManager")
     talkActor = system.actorOf(Props(new TalkActor), name = "talk-actor")
+    Akktivity.talkActor = talkActor
 
     val tickInterval = config.get().getInt("akkdroid.view.update-interval")
     implicit val executionContext = system.dispatcher
@@ -122,10 +125,13 @@ class Akktivity extends Activity {
     class OnClickHandler extends AdapterView.OnItemClickListener {
       override def  onItemClick(parent: AdapterView[_], v: View, position: Int, id: Long) {
         val bundle = new Bundle()
-        val peers = getView
-        val ip = peers(position).addr.toString
-        bundle.putString("remote-user", ip)
-        //bundle.putSerializable("remote-ref", system.actorSelection(s"akka.tcp://mobile-system@$ip:2552/user/talk-actor"))
+        val peer = getView(position)
+        val ip = peer.addr.getHostAddress
+        val port = config.get().getInt("akka.remote.netty.tcp.port")
+        val remoteRef = s"akka.tcp://mobile-system@$ip:$port/user/talk-actor"
+        bundle.putString("remote-nick", peer.nick)
+        bundle.putString("remote-ref", remoteRef)
+        //bundle.putSerializable("remote-ref", system.actorSelection())
         //bundle.putSerializable("local-ref", talkActor)
         val intent = new Intent(getBaseContext, classOf[TalkAkktivity])
         intent.putExtras(bundle)
@@ -154,12 +160,28 @@ class Akktivity extends Activity {
     config.set(conf)
   }
 
-  private def getInetAddress =
-    new EnumerationIterator(NetworkInterface.getNetworkInterfaces).asScala.collectFirst {
-      case iface if iface.isUp && !iface.isLoopback && iface.getInetAddresses.hasMoreElements =>
-        iface.getInetAddresses.nextElement().getHostAddress
-    }
+  private def getInetAddress = {
+    var ifaces = new EnumerationIterator(NetworkInterface.getNetworkInterfaces).asScala
+    ifaces = ifaces.filter(iface => {iface.isUp && !iface.isLoopback && iface.getInetAddresses.hasMoreElements})
+    var addrs = new ju.ArrayList[InetAddress].asScala
+    ifaces.foreach( i => i.getInetAddresses.asScala.foreach( a => addrs.append(a)))
 
+    //addrs = addrs.foldLeft(new ju.ArrayList[InetAddress]) ( (l, a) => {l.asScala.appendAll(a.getInetAddresses.asScala); l})
+
+    addrs = addrs.filter(a => a.isInstanceOf[Inet4Address])
+    val textAddrs = addrs.map(a => a.getHostAddress)
+
+    Log.e("inet", addrs.toString)
+    textAddrs.headOption
+    /*NetworkInterface.getNetworkInterfaces.asScala.foreach(n => {Log.e("inet", n.toString); n.getInetAddresses.asScala.foreach(a => Log.e("inet", a.toString + "|" + a.getHostAddress + "|" + a.getClass) )})
+    new EnumerationIterator(NetworkInterface.getNetworkInterfaces).asScala.collectFirst {
+      case iface if iface.isUp && !iface.isLoopback && iface.getInetAddresses.hasMoreElements
+        && iface.getInetAddresses.asScala.exists( a => a.isInstanceOf[Inet4Address]) =>
+        iface.getInetAddresses.asScala.collectFirst {
+          case addr if addr.isInstanceOf[Inet4Address] => addr.getHostAddress
+        }
+    } */
+  }
   private def updateServerActorRef() {
     val newServiceURL = loadServiceURL()
     if (newServiceURL != serviceURL) {
@@ -167,4 +189,9 @@ class Akktivity extends Activity {
       serverActor = system.actorSelection(serviceURL)
     }
   }
+}
+
+object Akktivity {
+  var system : ActorSystem = null
+  var talkActor : ActorRef = null
 }

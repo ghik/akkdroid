@@ -9,6 +9,7 @@ import android.widget.{ListView, TextView, Button, ArrayAdapter}
 import com.akkdroid.client.TalkActor.{ForwardMessage, TalkMessage}
 import android.preference.PreferenceManager
 import akka.actor.{ActorSelection, ActorRef}
+import android.util.Log
 
 class TalkAkktivity extends Activity {
 
@@ -69,15 +70,19 @@ class TalkAkktivity extends Activity {
     val items = new ju.ArrayList[String]
     val bundle = getIntent().getExtras()
 
-    val user = bundle.getString("remote-user")
+    val user = bundle.getString("remote-nick")
+    //recipient = bundle.getSerializable("remote-ref").asInstanceOf[ActorSelection]
+    //talkActor = bundle.getSerializable("local-ref").asInstanceOf[ActorRef]
     items.add(s"Started conversation with $user")
     adapter = new ArrayAdapter(this, android.R.layout.simple_expandable_list_item_1, items)
     messagesList.setAdapter(adapter)
 
-    //val ref = bundle.getString("remote-ref")
+    recipient = Akktivity.system.actorSelection(bundle.getString("remote-ref"))
 
     sendButton.onClickAsync { _ =>
-      //talkActor ! ForwardMessage(recipient, getNick(), messageTextView.getText.toString)
+      Log.i("TalkAkktivity", "sending message START")
+      Akktivity.talkActor ! ForwardMessage(recipient, getNick(), messageTextView.getText.toString)
+      Log.i("TalkAkktivity", "sending message END")
     }
   }
 }
