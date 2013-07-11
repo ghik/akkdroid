@@ -1,0 +1,28 @@
+Aktorzy i wiadomości
+
+HandlerDispatcherActor
+ in msg:Any
+MembersManager
+ in GetMembers
+ in PingReceived
+ in SetMemberUpdateListener
+ in Failure 
+ out MembersUpdated
+TalkActor
+ in TalkMessage,
+ in ForwardMessage
+ in SetTalkListener 
+ out TalkMessage
+
+PingSender
+ out PingSendFailed
+PingReceiver
+ out PingReceived
+ out PingReceiveFailed
+TalkAkktivity
+ out SetTalkListener
+Akktivity
+ out GetMembers
+ out SetMemberUpdateListener
+
+ 
